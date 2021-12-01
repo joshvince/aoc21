@@ -1,7 +1,11 @@
-fun main(args: Array<String>) {
-    println("Hello World!")
+package adventofcode21
 
-    // Try adding program arguments via Run/Debug configuration.
-    // Learn more about running applications: https://www.jetbrains.com/help/idea/running-applications.html.
-    println("Program arguments: ${args.joinToString()}")
+fun main(args: Array<String>) {
+    println("Lets solve the puzzle...")
+    val inputFilePath: String = args.first()
+
+    val input = InputParser().csvToIntList(inputFilePath)
+    val result = Day1().solvePartTwo(input)
+
+    println("This answer is: $result")
 }

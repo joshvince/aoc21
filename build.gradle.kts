@@ -15,6 +15,7 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     testImplementation("org.assertj:assertj-core:3.21.0")
+    implementation("com.github.doyaaaaaken:kotlin-csv-jvm:1.2.0")
 }
 
 tasks.test {
