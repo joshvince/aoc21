@@ -10,4 +10,8 @@ class InputParser() {
 
         return rows.map { it.first().toInt() }
     }
+
+    fun fileToStringList(filePath: String): List<String> {
+        return File(filePath).readLines()
+    }
 }
