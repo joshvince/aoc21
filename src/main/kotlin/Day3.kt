@@ -5,7 +5,7 @@ class Day3(input: List<String>) {
         const val inputFileName: String = "day3.csv"
     }
 
-    private val bitLines: List<List<Int>> = input.map { convertToBits(it) }
+    private val bitLines: List<List<Int>> = input.map { line -> line.map { it.digitToInt() } }
 
     fun solvePartOne(): Int {
         val mostCommonBits: MutableList<Int> = emptyList<Int>().toMutableList()
@@ -18,39 +18,35 @@ class Day3(input: List<String>) {
             leastCommonBits.add(leastCommonBit.bit)
         }
 
-        val gammaRate = convertToDecimal(mostCommonBits)
-        val epsilonRate = convertToDecimal(leastCommonBits)
-
-        return gammaRate * epsilonRate
+        return convertToDecimal(mostCommonBits) * convertToDecimal(leastCommonBits)
     }
 
     fun solvePartTwo(): Int {
-        val oxygenGeneratorRating = oxygenGeneratorRating(bitLines, 0)
-        val co2ScrubberRating = co2ScrubberRating(bitLines, 0)
+        val oxygenGeneratorRating = calculateLifeSupportComponent(LifeSupportComponent.OXYGEN_GENERATOR, bitLines, 0)
+        val co2ScrubberRating = calculateLifeSupportComponent(LifeSupportComponent.CO2_SCRUBBER, bitLines, 0)
 
-        return convertToDecimal(oxygenGeneratorRating) * convertToDecimal(co2ScrubberRating)
+        return oxygenGeneratorRating * co2ScrubberRating
     }
 
-    private fun oxygenGeneratorRating(numbers: List<List<Int>>, pos: Int): List<Int> {
-        if (numbers.size == 1) return numbers.single()
+    private fun calculateLifeSupportComponent(
+        component: LifeSupportComponent,
+        numbers: List<List<Int>>,
+        pos: Int
+    ): Int {
+        if (numbers.size == 1) return convertToDecimal(numbers.single())
 
         val (leastCommonBit, mostCommonBit) = getBitByFrequency(pos, numbers)
-        val bitCriteria = if(leastCommonBit.frequency == mostCommonBit.frequency) 1 else mostCommonBit.bit
+
+        val bitCriteria = if (component == LifeSupportComponent.OXYGEN_GENERATOR) {
+            if(leastCommonBit.frequency == mostCommonBit.frequency) 1 else mostCommonBit.bit
+        } else {
+            if(leastCommonBit.frequency == mostCommonBit.frequency) 0 else leastCommonBit.bit
+        }
 
         val numbersWithBitAtPosition = numbers.filter { it[pos] == bitCriteria }
 
-        return oxygenGeneratorRating(numbersWithBitAtPosition, pos + 1)
-    }
+        return calculateLifeSupportComponent(component, numbersWithBitAtPosition, pos + 1)
 
-    private fun co2ScrubberRating(numbers: List<List<Int>>, pos: Int): List<Int> {
-        if (numbers.size == 1) return numbers.single()
-
-        val (leastCommonBit, mostCommonBit) = getBitByFrequency(pos, numbers)
-        val bitCriteria = if(leastCommonBit.frequency == mostCommonBit.frequency) 0 else leastCommonBit.bit
-
-        val numbersWithBitAtPosition = numbers.filter { it[pos] == bitCriteria }
-
-        return co2ScrubberRating(numbersWithBitAtPosition, pos + 1)
     }
 
     private fun getBitByFrequency(pos: Int, numbers: List<List<Int>> = bitLines): Array<BitFrequency> {
@@ -65,8 +61,8 @@ class Day3(input: List<String>) {
     }
 
     private fun convertToDecimal(bitArray: List<Int>): Int = bitArray.joinToString("").toInt(2)
-
-    private fun convertToBits(line: String): List<Int> = line.map { it.digitToInt() }
 }
 
 data class BitFrequency(val bit: Int, val frequency: Int)
+
+enum class LifeSupportComponent { CO2_SCRUBBER, OXYGEN_GENERATOR }
