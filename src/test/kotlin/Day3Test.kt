@@ -26,4 +26,10 @@ internal class Day3Test {
         assertThat(describedClass.solvePartOne()).isEqualTo(198)
     }
 
+    @Test
+    @DisplayName("It solves the part two sample")
+    fun solvesPartTwoSampleInput() {
+        assertThat(describedClass.solvePartTwo()).isEqualTo(230)
+    }
+
 }
