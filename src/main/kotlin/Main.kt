@@ -5,7 +5,7 @@ fun main(args: Array<String>) {
     val inputFilePath = "src/main/resources/${Day4.inputFileName}"
 
     val input = InputParser().fileToStringList(inputFilePath)
-    val result = Day4(input).solvePartOne()
+    val result = Day4(input).solvePartTwo()
 
     println("This answer is: $result")
 }

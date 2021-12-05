@@ -6,7 +6,8 @@ class Day4(input: List<String>) {
     }
 
     private val numbersCalled: List<Int> = input.first().split(",").map { it.toInt() }
-    private val boards: MutableList<Board> = mapInputToBoards(input).toMutableList()
+    private var boards: MutableList<Board> = mapInputToBoards(input).toMutableList()
+    private var boardsWithWins: MutableList<Board> = mapInputToBoards(input).toMutableList()
 
     private fun mapInputToBoards(inputStrings: List<String>): List<Board> {
         val onlyBoards = inputStrings.drop(1).filterNot { it == "" }
@@ -18,20 +19,33 @@ class Day4(input: List<String>) {
     }
 
     fun solvePartOne(): Int? {
-        numbersCalled.forEach { number ->
-            boards.forEach { it.mark(number) }
+        numbersCalled.forEach { number -> boards.forEach { it.mark(number) } }
+        val allWinners: List<Victory> = boards.map { it.victories }.flatten()
 
-            val winningBoard = boards.find { it.isWinner() }
-            if (winningBoard is Board) {
-                return winningBoard.sumOfUnmarkedNumbers() * number
+        return allWinners.minByOrNull { it.numberCount }?.score
+    }
+
+    fun solvePartTwo(): Int? {
+        var positionToCall = 0
+
+        while (boards.isNotEmpty()) {
+            boards.forEach { it.mark(numbersCalled[positionToCall]) }
+
+            boards.filter { it.victories.isNotEmpty() }.forEach { board ->
+                boardsWithWins.add(board)
             }
+            boards.removeIf { it.victories.isNotEmpty() }
+            positionToCall ++
         }
-        return null
+        return boardsWithWins.last().victories.last().score
     }
 }
 
 class Board(input: List<List<Int>>) {
-    var rows: MutableList<MutableList<Square>> = input.map { convertInputToRow(it) }.toMutableList()
+    var victories: MutableList<Victory> = emptyList<Victory>().toMutableList()
+    private var rows: MutableList<MutableList<Square>> = input.map { convertInputToRow(it) }.toMutableList()
+    private var numberCounter: Int = 0
+    private var numbersMarked: MutableList<Int> = emptyList<Int>().toMutableList()
 
     private fun convertInputToRow(list: List<Int>): MutableList<Square> {
         return list.mapIndexed { index, number ->
@@ -40,30 +54,34 @@ class Board(input: List<List<Int>>) {
     }
 
     fun mark(number: Int) {
+        numbersMarked.add(number)
+        numberCounter++
         rows.forEachIndexed { rowIndex, row ->
-            val indexWithNumber: Int? = row.find { it.value == number }?.rowPosition
-
-            if (indexWithNumber is Int) {
+            val indexWithNumber: Int? = row.find { it.value == numbersMarked.last() }?.rowPosition
+            if (indexWithNumber is Int && !rows[rowIndex][indexWithNumber].marked) {
                 rows[rowIndex][indexWithNumber].marked = true
+                checkAndRegisterWinner(rowIndex, indexWithNumber)
             }
         }
     }
 
-    fun isWinner(): Boolean {
-        val completeRow: MutableList<Square>? = rows.find { row -> row.all { it.marked } }
-        if (completeRow != null) return true
+    private fun checkAndRegisterWinner(rowPosition: Int, columnPosition: Int) {
+        val row = rows[rowPosition]
+        val column = rows.map { it[columnPosition] }
 
-        for (i in 0..4 ) {
-            val column: List<Square> = rows.map { row -> row[i] }
-
-            if (column.all { it.marked }) return true
+        if (row.all { it.marked } || column.all{ it.marked }) {
+            victories.add(Victory(score(), numberCounter))
         }
-        return false
+        if (column.all{ it.marked }) {
+            victories.add(Victory(score(), numberCounter))
+        }
     }
 
-    fun sumOfUnmarkedNumbers(): Int {
-        return rows.flatten().filterNot { it.marked }.sumOf { it.value }
+    private fun score(): Int {
+        val unmarkedSquareTotal: Int = rows.flatten().filterNot { it.marked }.sumOf { it.value }
+        return unmarkedSquareTotal * numbersMarked.last()
     }
 }
 
 data class Square(val rowPosition: Int, val value: Int, var marked: Boolean = false)
+data class Victory(val score: Int, val numberCount: Int)
